@@ -1,4 +1,4 @@
-// Cart Page — Pet's Home
+﻿// Cart Page — Pet's Home
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
@@ -87,7 +87,9 @@ const Cart = () => {
   if (items.length === 0) {
     return (
       <div className="container-site py-20 text-center max-w-sm mx-auto space-y-4">
-        <span className="text-6xl text-muted block select-none">🛒</span>
+        <span className="mx-auto flex h-16 w-16 items-center justify-center text-brown-dark select-none">
+          <CartIcon size={54} />
+        </span>
         <div className="space-y-1">
           <h2 className="font-heading font-bold text-brown-dark text-lg sm:text-xl">
             {t('cartEmpty')}
@@ -99,7 +101,7 @@ const Cart = () => {
         <div className="pt-2">
           <a
             href="#"
-            className="inline-block px-8 py-2.5 bg-[#111111] hover:bg-primary text-white text-xs font-semibold rounded-pill transition-all duration-280 shadow-sm"
+            className="inline-block px-8 py-2.5 bg-primary hover:bg-primary text-white text-xs font-semibold rounded-pill transition-all duration-280 shadow-sm"
           >
             {t('shopProductsBtn')}
           </a>
@@ -325,4 +327,13 @@ const Cart = () => {
   )
 }
 
+const CartIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+  </svg>
+)
+
 export default Cart
+
+

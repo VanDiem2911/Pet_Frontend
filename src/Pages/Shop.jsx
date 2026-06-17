@@ -1,4 +1,4 @@
-// Shop Page — Pet's Home
+﻿// Shop Page — Pet's Home
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetchProducts } from '../utils/api'
@@ -8,9 +8,9 @@ import { useLanguage } from '../context/LanguageContext'
 import { Stars } from '../components/ProductGrid/ProductGrid'
 
 const CATEGORY_OPTIONS = [
-  { value: 'Chó', icon: '🐶', labelVi: 'Chó', labelEn: 'Dog' },
-  { value: 'Mèo', icon: '🐱', labelVi: 'Mèo', labelEn: 'Cat' },
-  { value: 'Phụ kiện', icon: '🎀', labelVi: 'Phụ kiện', labelEn: 'Accessories' },
+  { value: 'Chó', image: '/pets.png', labelVi: 'Chó', labelEn: 'Dog' },
+  { value: 'Mèo', image: '/cat.png', labelVi: 'Mèo', labelEn: 'Cat' },
+  { value: 'Phụ kiện', image: '/pet-collar.png', labelVi: 'Phụ kiện', labelEn: 'Accessories' },
 ]
 
 const normalizeText = value => (value || '')
@@ -278,7 +278,7 @@ const Shop = () => {
             <h3 className="font-heading font-bold text-brown-dark text-[11px] uppercase tracking-wider border-b border-border-light pb-2">
               {lang === 'vi' ? 'Chọn thú cưng' : 'Select Pet'}
             </h3>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2">
               {CATEGORY_OPTIONS.map(option => (
                 <button
                   key={option.value}
@@ -286,13 +286,23 @@ const Shop = () => {
                     setFilterCategory(option.value)
                     setSelectedTypes([])
                   }}
-                  className={`flex items-center justify-center gap-1.5 py-3 rounded-card border transition-all duration-280 font-bold text-xs ${
+                  className={`min-h-[56px] flex items-center justify-center gap-1.5 rounded-card border px-1.5 py-2 transition-all duration-280 font-bold text-[10px] sm:text-[11px] leading-tight text-center ${
                     activePet === option.value
-                      ? 'bg-brown-dark border-brown-dark text-white shadow-mid2'
-                      : 'bg-white border-[#eeeeee] text-[#555555] hover:border-primary/30 hover:text-primary'
+                      ? 'bg-primary border-primary text-white shadow-red'
+                      : 'bg-white border-[#eeeeee] text-brown-dark hover:border-primary/40 hover:text-primary hover:shadow-low'
                   }`}
                 >
-                  <span className="text-sm">{option.icon}</span> {lang === 'vi' ? option.labelVi : option.labelEn}
+                  <span className={`flex h-5 w-5 items-center justify-center rounded-full ${
+                    activePet === option.value ? 'bg-white/15' : 'bg-bg-light'
+                  }`}>
+                    <img
+                      src={option.image}
+                      alt=""
+                      className={`max-h-4 max-w-4 object-contain ${activePet === option.value ? 'brightness-0 invert' : ''}`}
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span className="whitespace-nowrap">{lang === 'vi' ? option.labelVi : option.labelEn}</span>
                 </button>
               ))}
             </div>
@@ -606,3 +616,5 @@ const Shop = () => {
 }
 
 export default Shop
+
+

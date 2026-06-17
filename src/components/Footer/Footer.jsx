@@ -1,4 +1,4 @@
-// Footer component — Pet's Home
+﻿// Footer component — Pet's Home
 import { useState } from 'react'
 import { subscribeNewsletter } from '../../utils/api'
 import { useLanguage } from '../../context/LanguageContext'
@@ -158,3 +158,5 @@ const Footer = () => {
 }
 
 export default Footer
+
+

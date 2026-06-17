@@ -1,4 +1,4 @@
-// Navbar component — Pet's Home
+﻿// Navbar component — Pet's Home
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
@@ -55,7 +55,7 @@ const Navbar = () => {
     { label: t('shop'), href: '/shop' },
     { label: t('deals'), href: '/deals' },
     { label: t('services'), href: '/services' },
-    { label: 'Theo dõi đơn', href: '/track-order' },
+    { label: lang === 'vi' ? 'Theo dõi đơn' : 'Track order', href: '/track-order' },
     { label: t('contactUs'), href: '/contact' },
   ]
 
@@ -345,3 +345,5 @@ const LogoutIcon = ({ size = 16 }) => (
 )
 
 export default Navbar
+
+

@@ -1,4 +1,4 @@
-// Services Page — Pet's Home
+﻿// Services Page — Pet's Home
 import { useState } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 import { bookAppointment, fetchBookedSlots } from '../utils/api'
@@ -112,7 +112,7 @@ const Services = () => {
         setSelectedService(null)
         setFormData({ name: '', phone: '', date: '', checkoutDate: '', timeSlot: '', notes: '' })
       }, 2500)
-    } catch (err) {
+    } catch {
       setBookError('Có lỗi xảy ra, vui lòng thử lại.')
     } finally {
       setSubmitting(false)
@@ -194,7 +194,7 @@ const Services = () => {
               <div className="pt-3 mt-auto">
                 <button
                   onClick={() => setSelectedService(service)}
-                  className="px-6 py-2 bg-[#111111] hover:bg-primary text-white text-xs font-semibold rounded-pill transition-all duration-180"
+                  className="px-6 py-2 bg-primary hover:bg-secondary text-white text-xs font-semibold rounded-pill shadow-red transition-all duration-180 hover:-translate-y-px"
                 >
                   {t('bookAppointment')}
                 </button>
@@ -397,7 +397,7 @@ const Services = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 py-2 rounded-pill bg-[#111111] hover:bg-primary text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 py-2 rounded-pill bg-primary hover:bg-secondary text-white text-xs font-semibold shadow-red transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Đang gửi...' : t('confirmBooking')}
                   </button>
@@ -448,3 +448,5 @@ const Services = () => {
 }
 
 export default Services
+
+

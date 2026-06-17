@@ -1,4 +1,4 @@
-// PromoBanner component — Pet's Home
+﻿// PromoBanner component — Pet's Home
 import { useLanguage } from '../../context/LanguageContext'
 
 const PromoBanner = () => {
@@ -27,3 +27,5 @@ const PromoBanner = () => {
 }
 
 export default PromoBanner
+
+

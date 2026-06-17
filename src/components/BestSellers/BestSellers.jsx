@@ -114,9 +114,9 @@ const BestSellers = () => {
 const ProductGroup = ({ group, addedIds, onAdd, lang, t }) => (
   <section className="space-y-5">
     <div className="flex items-center justify-between gap-4 border-b border-border-light">
-      <div className="relative inline-flex items-center bg-accent text-white font-bold text-xs sm:text-sm uppercase px-4 py-2 rounded-t-sm">
+      <div className="relative inline-flex items-center bg-primary text-white font-bold text-xs sm:text-sm uppercase px-4 py-2 rounded-t-sm">
         {group.title}
-        <span className="absolute -right-3 top-0 h-full w-4 bg-accent [clip-path:polygon(0_0,100%_50%,0_100%)]" />
+        <span className="absolute -right-3 top-0 h-full w-4 bg-primary [clip-path:polygon(0_0,100%_50%,0_100%)]" />
       </div>
       <div className="hidden sm:flex items-center gap-4 text-[11px] text-muted">
         {group.links.map(link => (
