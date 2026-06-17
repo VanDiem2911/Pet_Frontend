@@ -102,7 +102,8 @@ const BestSellers = () => {
         {groups.map((group, index) => (
           <div key={group.id} className="space-y-10">
             <ProductGroup group={group} addedIds={addedIds} onAdd={handleAdd} lang={lang} t={t} />
-            {index === 1 && <GroomingInlineBanner />}
+            {index === 1 && <PateTreatsInlineBanner />}
+            {index === 3 && <GroomingInlineBanner />}
           </div>
         ))}
       </div>
@@ -119,7 +120,7 @@ const ProductGroup = ({ group, addedIds, onAdd, lang, t }) => (
       </div>
       <div className="hidden sm:flex items-center gap-4 text-[11px] text-muted">
         {group.links.map(link => (
-          <a key={link} href="/shop?category=Phụ kiện" className="hover:text-primary transition-colors">
+          <a key={link} href={getGroupLink(group)} className="hover:text-primary transition-colors">
             {link}
           </a>
         ))}
@@ -201,16 +202,37 @@ const BestSellerCard = ({ product, isAdded, onAdd, lang, t }) => (
   </article>
 )
 
-const GroomingInlineBanner = () => (
+const getGroupLink = group => {
+  if (group.pet === 'accessory') return '/shop?category=Ph%E1%BB%A5%20ki%E1%BB%87n'
+  if (group.pet === 'dog') return '/shop?category=Ch%C3%B3'
+  return '/shop?category=M%C3%A8o'
+}
+
+const PateTreatsInlineBanner = () => (
   <a
-    href="/services"
-    className="block overflow-hidden rounded-card border border-border-light bg-[#4fa373] shadow-low transition-all duration-280 hover:-translate-y-1 hover:shadow-mid"
-    aria-label="Đặt lịch tắm gội cho thú cưng"
+    href="/promotions"
+    className="block overflow-hidden rounded-card border border-border-light bg-[#fff6df] shadow-low transition-all duration-280 hover:-translate-y-1 hover:shadow-mid"
+    aria-label="Pate và bánh thưởng thú cưng"
   >
     <img
-      src="/banner-grooming-price.png"
-      alt="Đồng giá tắm gội cho thú cưng"
-      className="w-full aspect-[2048/335] object-cover"
+      src="/banner-pate-treats.png"
+      alt="Pate - bánh thưởng thơm ngon khó cưỡng"
+      className="w-full aspect-[2048/613] object-cover"
+      loading="lazy"
+    />
+  </a>
+)
+
+const GroomingInlineBanner = () => (
+  <a
+    href="/shop?category=Ph%E1%BB%A5%20ki%E1%BB%87n"
+    className="block overflow-hidden rounded-card border border-border-light shadow-low transition-all duration-280 hover:-translate-y-1 hover:shadow-mid"
+    aria-label="Giảm 20% quần áo thú cưng"
+  >
+    <img
+      src="/banner-quan-ao.png"
+      alt="Giảm 20% quần áo thú cưng"
+      className="w-full object-cover"
       loading="lazy"
     />
   </a>
