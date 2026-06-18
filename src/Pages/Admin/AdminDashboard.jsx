@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdmin } from '../../context/AdminAuthContext'
 
@@ -258,7 +258,6 @@ const EMPTY_PRODUCT = {
   category: 'Chó',
   stock: 100,
   imageUrl: '',
-  emoji: '🐾',
   hot: false,
 }
 
@@ -269,6 +268,43 @@ const ProductsTab = ({ authFetch }) => {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(EMPTY_PRODUCT)
   const [saving, setSaving] = useState(false)
+  const [uploadingImg, setUploadingImg] = useState(false)
+  const [filterCategory, setFilterCategory] = useState('ALL')
+  const [filterStock, setFilterStock] = useState('ALL')
+  const [filterHot, setFilterHot] = useState('ALL')
+
+  const uniqueBrands = useMemo(() => {
+    return Array.from(new Set(list.map(p => p.brand).filter(Boolean))).sort()
+  }, [list])
+
+  const handleImageUpload = async e => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setUploadingImg(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dpgr5y84c'
+    const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'pethome_preset'
+    formData.append('upload_preset', preset)
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      })
+      if (!res.ok) {
+        throw new Error('Upload failed')
+      }
+      const data = await res.json()
+      setForm(prev => ({ ...prev, imageUrl: data.secure_url }))
+    } catch (err) {
+      console.error(err)
+      alert('Tải ảnh lên Cloudinary thất bại. Vui lòng cấu hình VITE_CLOUDINARY_CLOUD_NAME và VITE_CLOUDINARY_UPLOAD_PRESET trong file .env!')
+    } finally {
+      setUploadingImg(false)
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -299,13 +335,17 @@ const ProductsTab = ({ authFetch }) => {
   const save = async () => {
     setSaving(true)
     try {
+      const nextId = editing !== 'new'
+        ? (Number(editing.id) || Number(form.id))
+        : (Math.max(...list.map(p => Number(p.id) || 0), 0) + 1)
+
       const payload = {
         ...form,
+        id: nextId,
         price: Number(form.price),
         oldPrice: form.oldPrice ? Number(form.oldPrice) : null,
         discount: Number(form.discount) || 0,
         stock: Number(form.stock) || 0,
-        id: editing !== 'new' ? editing.id : undefined,
       }
 
       if (editing === 'new') {
@@ -318,6 +358,7 @@ const ProductsTab = ({ authFetch }) => {
       setEditing(null)
     } catch (error) {
       console.warn(error.message)
+      alert('Không thể lưu sản phẩm: ' + error.message)
     } finally {
       setSaving(false)
     }
@@ -334,16 +375,22 @@ const ProductsTab = ({ authFetch }) => {
   }
 
   const normalizedSearch = search.toLowerCase()
-  const filtered = list.filter(product =>
-    product.name?.toLowerCase().includes(normalizedSearch) ||
-    product.brand?.toLowerCase().includes(normalizedSearch)
-  )
+  const filtered = list.filter(product => {
+    const matchSearch = product.name?.toLowerCase().includes(normalizedSearch) ||
+                        product.brand?.toLowerCase().includes(normalizedSearch)
+    const matchCategory = filterCategory === 'ALL' || product.category === filterCategory
+    let matchStock = true
+    if (filterStock === 'IN_STOCK') matchStock = (product.stock || 0) > 0
+    if (filterStock === 'OUT_OF_STOCK') matchStock = (product.stock || 0) === 0
+    const matchHot = filterHot === 'ALL' || (filterHot === 'HOT' && product.hot)
+    return matchSearch && matchCategory && matchStock && matchHot
+  })
 
   return (
     <>
       <Panel title="Catalog sản phẩm" icon={BoxIcon}>
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center mb-5">
-          <div className="relative flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+          <div className="relative flex-1 sm:col-span-2">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
               <SearchIcon size={15} />
             </span>
@@ -354,7 +401,58 @@ const ProductsTab = ({ authFetch }) => {
               className={fieldCls + ' pl-10'}
             />
           </div>
-          <button type="button" onClick={openNew} className="btn-accent rounded-btn px-5 py-2.5 text-xs font-semibold">
+
+          <select
+            value={filterCategory}
+            onChange={e => setFilterCategory(e.target.value)}
+            className={fieldCls}
+          >
+            <option value="ALL">Tất cả danh mục</option>
+            <option value="Chó">Chó</option>
+            <option value="Mèo">Mèo</option>
+            <option value="Phụ kiện">Phụ kiện</option>
+          </select>
+
+          <select
+            value={filterStock}
+            onChange={e => setFilterStock(e.target.value)}
+            className={fieldCls}
+          >
+            <option value="ALL">Tất cả trạng thái kho</option>
+            <option value="IN_STOCK">Còn hàng (&gt; 0)</option>
+            <option value="OUT_OF_STOCK">Hết hàng (= 0)</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-5 border-t border-border-light pt-4">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setFilterHot(prev => prev === 'ALL' ? 'HOT' : 'ALL')}
+              className={`px-3 py-1.5 rounded-pill border text-[11px] font-semibold transition-all ${
+                filterHot === 'HOT'
+                  ? 'bg-primary text-white border-primary shadow-red'
+                  : 'bg-white text-text-light border-border-light hover:border-primary hover:text-primary'
+              }`}
+            >
+              Chỉ sản phẩm HOT 🔥
+            </button>
+            {(filterCategory !== 'ALL' || filterStock !== 'ALL' || filterHot !== 'ALL' || search) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterCategory('ALL')
+                  setFilterStock('ALL')
+                  setFilterHot('ALL')
+                  setSearch('')
+                }}
+                className="px-3 py-1.5 rounded-pill border border-border-light text-[11px] font-semibold text-text-light hover:bg-red-50 hover:text-primary transition-colors bg-white"
+              >
+                Xóa tất cả bộ lọc
+              </button>
+            )}
+          </div>
+          <button type="button" onClick={openNew} className="btn-accent rounded-btn px-5 py-2.5 text-xs font-semibold self-end sm:self-auto">
             <PlusIcon size={15} />
             Thêm sản phẩm
           </button>
@@ -379,7 +477,7 @@ const ProductsTab = ({ authFetch }) => {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <span className="w-9 h-9 rounded-full bg-bg-light flex items-center justify-center text-lg shrink-0">
-                          {product.emoji || '🐾'}
+                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                         </span>
                         <div className="min-w-0">
                           <p className="text-brown-dark font-semibold leading-snug line-clamp-2">{product.name}</p>
@@ -391,9 +489,16 @@ const ProductsTab = ({ authFetch }) => {
                     <td className="px-4 py-3">
                       <span className="rounded-pill bg-bg-light px-2.5 py-1 font-semibold text-text-light">{product.category}</span>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className="font-bold text-primary">{Number(product.price).toLocaleString('vi-VN')}đ</span>
-                      {product.discount > 0 && <span className="block text-[10px] text-muted">-{product.discount}%</span>}
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      {product.discount > 0 && product.oldPrice ? (
+                        <>
+                          <span className="font-bold text-primary block">{Number(product.price).toLocaleString('vi-VN')}đ</span>
+                          <span className="text-[10px] text-muted line-through block">{Number(product.oldPrice).toLocaleString('vi-VN')}đ</span>
+                          <span className="text-[10px] text-muted block">-{product.discount}%</span>
+                        </>
+                      ) : (
+                        <span className="font-bold text-primary">{Number(product.oldPrice || product.price).toLocaleString('vi-VN')}đ</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right text-text-light">{product.stock}</td>
                     <td className="px-4 py-3">
@@ -428,31 +533,110 @@ const ProductsTab = ({ authFetch }) => {
             </div>
 
             <div className="space-y-4">
-              {[
-                { key: 'name', label: 'Tên sản phẩm', placeholder: 'Hạt Royal Canin...' },
-                { key: 'brand', label: 'Thương hiệu', placeholder: 'Royal Canin' },
-                { key: 'imageUrl', label: 'URL hình ảnh', placeholder: 'https://...' },
-                { key: 'emoji', label: 'Emoji', placeholder: '🐾' },
-              ].map(field => (
-                <FormField key={field.key} label={field.label}>
-                  <input
-                    value={form[field.key] || ''}
-                    onChange={e => setForm({ ...form, [field.key]: e.target.value })}
-                    placeholder={field.placeholder}
-                    className={fieldCls}
-                  />
-                </FormField>
-              ))}
+              <FormField label="Tên sản phẩm">
+                <input
+                  value={form.name || ''}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  placeholder="Hạt Royal Canin..."
+                  className={fieldCls}
+                />
+              </FormField>
+
+              <FormField label="Thương hiệu">
+                <input
+                  list="brand-list"
+                  value={form.brand || ''}
+                  onChange={e => setForm({ ...form, brand: e.target.value })}
+                  placeholder="Chọn hoặc nhập thương hiệu..."
+                  className={fieldCls}
+                />
+                <datalist id="brand-list">
+                  {uniqueBrands.map(b => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
+              </FormField>
+
+              <FormField label="Hình ảnh sản phẩm">
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      value={form.imageUrl || ''}
+                      onChange={e => setForm({ ...form, imageUrl: e.target.value })}
+                      placeholder="https://... hoặc tải ảnh lên"
+                      className={fieldCls + ' flex-1'}
+                    />
+                    <label className="shrink-0 bg-[#111111] hover:bg-primary text-white text-xs font-semibold px-4 py-2.5 rounded-btn flex items-center gap-1.5 cursor-pointer transition-colors select-none">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={uploadingImg}
+                      />
+                      {uploadingImg ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white/25 border-t-white rounded-full animate-spin" />
+                          <span>Đang tải...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CloudUploadIcon size={14} />
+                          <span>Tải ảnh</span>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                  {form.imageUrl && (
+                    <div className="relative w-16 h-16 rounded-card border border-border-light overflow-hidden bg-bg-light flex items-center justify-center">
+                      <img src={form.imageUrl} alt="Preview" className="w-full h-full object-contain p-1" />
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, imageUrl: '' })}
+                        className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors shadow-sm"
+                        title="Xóa hình ảnh"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </FormField>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField label="Giá (VNĐ)">
-                  <input type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className={fieldCls} />
+                  <input
+                    type="number"
+                    value={form.price}
+                    disabled
+                    className={fieldCls + ' opacity-70 bg-bg-light/60 cursor-not-allowed'}
+                  />
                 </FormField>
                 <FormField label="Giá gốc">
-                  <input type="number" value={form.oldPrice || ''} onChange={e => setForm({ ...form, oldPrice: e.target.value })} className={fieldCls} />
+                  <input
+                    type="number"
+                    value={form.oldPrice || ''}
+                    onChange={e => {
+                      const oldP = Number(e.target.value) || 0
+                      const disc = Number(form.discount) || 0
+                      const newPrice = disc > 0 ? Math.round(oldP * (1 - disc / 100)) : oldP
+                      setForm({ ...form, oldPrice: e.target.value, price: newPrice })
+                    }}
+                    className={fieldCls}
+                  />
                 </FormField>
                 <FormField label="Giảm giá (%)">
-                  <input type="number" value={form.discount} onChange={e => setForm({ ...form, discount: e.target.value })} className={fieldCls} />
+                  <input
+                    type="number"
+                    value={form.discount}
+                    onChange={e => {
+                      const disc = Number(e.target.value) || 0
+                      const oldP = Number(form.oldPrice) || 0
+                      const newPrice = (disc > 0 && oldP) ? Math.round(oldP * (1 - disc / 100)) : (oldP || form.price)
+                      setForm({ ...form, discount: e.target.value, price: newPrice })
+                    }}
+                    className={fieldCls}
+                  />
                 </FormField>
                 <FormField label="Tồn kho">
                   <input type="number" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} className={fieldCls} />
@@ -714,5 +898,12 @@ const PlusIcon = ({ size }) => <Svg size={size}><path d="M12 5v14" /><path d="M5
 const EditIcon = ({ size }) => <Svg size={size}><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></Svg>
 const TrashIcon = ({ size }) => <Svg size={size}><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></Svg>
 const CloseIcon = ({ size }) => <Svg size={size}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Svg>
+const CloudUploadIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+)
 
 export default AdminDashboard

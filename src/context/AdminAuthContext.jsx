@@ -56,7 +56,12 @@ export const AdminAuthProvider = ({ children }) => {
       },
     })
     if (res.status === 401) { logout(); throw new Error('Phiên đăng nhập hết hạn') }
-    if (!res.ok) throw new Error(`Lỗi ${res.status}`)
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      const msg = err.message || err.error || `Lỗi ${res.status}`
+      console.error('API Error Response:', err)
+      throw new Error(msg)
+    }
     if (res.status === 204) return null
     return res.json()
   }, [token, logout])

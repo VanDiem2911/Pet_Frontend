@@ -181,14 +181,20 @@ const BestSellerCard = ({ product, isAdded, onAdd, lang, t }) => (
       </div>
 
       <div className="flex items-end gap-2 mt-1">
-        {product.oldPrice && (
-          <span className="text-[10px] text-muted line-through">
-            {Number(product.oldPrice).toLocaleString('vi-VN')}đ
+        {product.discount > 0 && product.oldPrice ? (
+          <>
+            <span className="text-[10px] text-muted line-through">
+              {Number(product.oldPrice).toLocaleString('vi-VN')}đ
+            </span>
+            <span className="text-sm font-bold text-brown-dark">
+              {Number(product.price).toLocaleString('vi-VN')}đ
+            </span>
+          </>
+        ) : (
+          <span className="text-sm font-bold text-brown-dark">
+            {Number(product.oldPrice || product.price).toLocaleString('vi-VN')}đ
           </span>
         )}
-        <span className="text-sm font-bold text-brown-dark">
-          {Number(product.price).toLocaleString('vi-VN')}đ
-        </span>
       </div>
 
       <button

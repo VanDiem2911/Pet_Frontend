@@ -1,4 +1,4 @@
-﻿// Shop Page — Pet's Home
+// Shop Page — Pet's Home
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetchProducts } from '../utils/api'
@@ -511,12 +511,18 @@ const Shop = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs font-bold text-primary">
-                            {product.price.toLocaleString('vi-VN')}đ
-                          </span>
-                          {product.oldPrice && (
-                            <span className="text-[10px] text-muted line-through">
-                              {product.oldPrice.toLocaleString('vi-VN')}đ
+                          {product.discount > 0 && product.oldPrice ? (
+                            <>
+                              <span className="text-xs font-bold text-primary">
+                                {product.price.toLocaleString('vi-VN')}đ
+                              </span>
+                              <span className="text-[10px] text-muted line-through">
+                                {product.oldPrice.toLocaleString('vi-VN')}đ
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xs font-bold text-primary">
+                              {Number(product.oldPrice || product.price).toLocaleString('vi-VN')}đ
                             </span>
                           )}
                         </div>

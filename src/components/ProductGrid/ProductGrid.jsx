@@ -84,12 +84,18 @@ const ProductCard = ({ product }) => {
           </span>
         </div>
         <div className="flex items-center gap-2 mt-auto pt-1">
-          <span className="text-xs font-medium text-primary">
-            {product.price.toLocaleString('vi-VN')}đ
-          </span>
-          {product.oldPrice && (
-            <span className="text-[11px] text-muted line-through">
-              {product.oldPrice.toLocaleString('vi-VN')}đ
+          {product.discount > 0 && product.oldPrice ? (
+            <>
+              <span className="text-xs font-medium text-primary">
+                {product.price.toLocaleString('vi-VN')}đ
+              </span>
+              <span className="text-[11px] text-muted line-through">
+                {product.oldPrice.toLocaleString('vi-VN')}đ
+              </span>
+            </>
+          ) : (
+            <span className="text-xs font-medium text-primary">
+              {Number(product.oldPrice || product.price).toLocaleString('vi-VN')}đ
             </span>
           )}
         </div>
